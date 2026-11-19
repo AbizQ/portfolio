@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BRITVA — барбершоп (демо-проект)</title>
+<meta name="description" content="Демо-лендинг барбершопа: услуги, мастера, онлайн-запись через Telegram.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0e0d;
+    --bg-2: #171513;
+    --card: #1e1b18;
+    --line: #2c2824;
+    --text: #efe9e1;
+    --muted: #a39a8f;
+    --gold: #c9a86a;
+    --gold-2: #e3c88f;
+    --radius: 18px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+  a { color: inherit; text-decoration: none; }
+  .container { width: min(1140px, 92%); margin: 0 auto; }
+  h1, h2, h3 { font-family: 'Playfair Display', serif; line-height: 1.15; }
+  .gold { color: var(--gold); }
+
+  /* demo badge */
+  .demo-badge {
+    background: var(--gold); color: #1a1612; text-align: center;
+    font-size: 13px; font-weight: 600; padding: 6px 12px;
+  }
+
+  /* header */
+  header {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(15,14,13,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav { display: flex; align-items: center; justify-content: space-between; height: 70px; }
+  .logo { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 800; letter-spacing: 3px; }
+  .logo span { color: var(--gold); }
+  .nav-links { display: flex; gap: 32px; font-size: 15px; color: var(--muted); }
+  .nav-links a:hover { color: var(--text); }
+  .burger { display: none; background: none; border: 0; color: var(--text); font-size: 28px; cursor: pointer; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 15px 30px; border-radius: 999px; font-weight: 600; font-size: 15px;
+    border: 1px solid var(--gold); cursor: pointer; transition: .25s; font-family: inherit;
+  }
+  .btn-primary { background: var(--gold); color: #1a1612; }
+  .btn-primary:hover { background: var(--gold-2); transform: translateY(-2px); box-shadow: 0 10px 30px rgba(201,168,106,.25); }
+  .btn-ghost { background: transparent; color: var(--gold); }
+  .btn-ghost:hover { background: rgba(201,168,106,.1); }
+  .btn-sm { padding: 10px 20px; font-size: 14px; }
+
+  /* hero */
+  .hero { position: relative; padding: 110px 0 120px; overflow: hidden; }
+  .hero::before {
+    content: ""; position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 80% 20%, rgba(201,168,106,.18), transparent 45%),
+      radial-gradient(circle at 10% 90%, rgba(201,168,106,.08), transparent 40%);
+  }
+  .hero-grid { position: relative; display: grid; grid-template-columns: 1.2fr 1fr; gap: 60px; align-items: center; }
+  .eyebrow { color: var(--gold); text-transform: uppercase; letter-spacing: 4px; font-size: 13px; font-weight: 600; margin-bottom: 20px; }
+  .hero h1 { font-size: clamp(42px, 6vw, 76px); margin-bottom: 24px; }
+  .hero p { color: var(--muted); font-size: 18px; max-width: 520px; margin-bottom: 40px; }
+  .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; }
+  .hero-stats { display: flex; gap: 48px; margin-top: 56px; }
+  .hero-stats b { font-family: 'Playfair Display', serif; font-size: 36px; color: var(--gold); display: block; }
+  .hero-stats span { color: var(--muted); font-size: 14px; }
+
+  .hero-visual {
+    aspect-ratio: 4/5; border-radius: 200px 200px var(--radius) var(--radius);
+    background:
+      linear-gradient(160deg, rgba(201,168,106,.25), transparent 60%),
+      repeating-linear-gradient(45deg, #1e1b18 0 14px, #221f1b 14px 28px);
+    border: 1px solid var(--line); position: relative; display: grid; place-items: center;
+  }
+  .hero-visual .pole {
+    width: 70px; height: 260px; border-radius: 35px; border: 6px solid var(--gold);
+    background: repeating-linear-gradient(-45deg, #c94b4b 0 18px, #efe9e1 18px 36px, #3b5bab 36px 54px, #efe9e1 54px 72px);
+    background-size: 100% 200%; animation: pole 3s linear infinite;
+    box-shadow: 0 20px 60px rgba(0,0,0,.6);
+  }
+  @keyframes pole { to { background-position: 0 -102px; } }
+  .hero-card {
+    position: absolute; bottom: 28px; left: -30px; background: var(--card); border: 1px solid var(--line);
+    padding: 16px 20px; border-radius: 14px; display: flex; gap: 12px; align-items: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,.4);
+  }
+  .hero-card .dot { width: 10px; height: 10px; border-radius: 50%; background: #5ad37f; box-shadow: 0 0 10px #5ad37f; }
+  .hero-card small { color: var(--muted); display: block; font-size: 12px; }
+
+  /* sections */
+  section { padding: 100px 0; }
+  .section-head { text-align: center; max-width: 640px; margin: 0 auto 60px; }
+  .section-head h2 { font-size: clamp(32px, 4vw, 48px); margin-bottom: 16px; }
+  .section-head p { color: var(--muted); }
+  .alt { background: var(--bg-2); }
+
+  /* services */
+  .services { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .service {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 32px; transition: .3s; position: relative; overflow: hidden;
+  }
+  .service:hover { transform: translateY(-6px); border-color: var(--gold); }
+  .service .icon { font-size: 36px; margin-bottom: 20px; }
+  .service h3 { font-size: 22px; margin-bottom: 10px; }
+  .service p { color: var(--muted); font-size: 15px; margin-bottom: 24px; }
+  .service .row { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--line); padding-top: 18px; }
+  .price { font-family: 'Playfair Display', serif; font-size: 26px; color: var(--gold); }
+  .time { color: var(--muted); font-size: 14px; }
+
+  /* masters */
+  .masters { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .master { text-align: center; }
+  .avatar {
+    aspect-ratio: 1; border-radius: var(--radius); margin-bottom: 20px; display: grid; place-items: center;
+    font-family: 'Playfair Display', serif; font-size: 64px; color: var(--gold);
+    border: 1px solid var(--line); transition: .3s;
+  }
+  .master:hover .avatar { border-color: var(--gold); }
+  .a1 { background: linear-gradient(135deg, #2a241d, #171513); }
+  .a2 { background: linear-gradient(135deg, #1d2226, #171513); }
+  .a3 { background: linear-gradient(135deg, #261d1d, #171513); }
+  .master h3 { font-size: 22px; }
+  .master p { color: var(--muted); font-size: 14px; }
+
+  /* steps */
+  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; counter-reset: s; }
+  .step { padding: 28px; border-left: 2px solid var(--gold); }
+  .step::before { counter-increment: s; content: "0" counter(s); font-family: 'Playfair Display', serif; font-size: 40px; color: var(--gold); display: block; margin-bottom: 12px; }
+  .step h3 { font-size: 19px; margin-bottom: 8px; }
+  .step p { color: var(--muted); font-size: 14px; }
+
+  /* booking */
+  .booking { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+  .booking h2 { font-size: clamp(32px, 4vw, 48px); margin-bottom: 20px; }
+  .booking > div > p { color: var(--muted); margin-bottom: 32px; }
+  .tg-box {
+    display: flex; gap: 16px; align-items: center; padding: 20px; border-radius: var(--radius);
+    background: linear-gradient(135deg, rgba(42,171,238,.15), rgba(42,171,238,.03)); border: 1px solid rgba(42,171,238,.35);
+  }
+  .tg-box .tg-icon { width: 48px; height: 48px; border-radius: 50%; background: #2aabee; display: grid; place-items: center; flex-shrink: 0; }
+  .tg-box b { display: block; }
+  .tg-box small { color: var(--muted); }
+  form { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 36px; display: grid; gap: 16px; }
+  label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 6px; }
+  input, select {
+    width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line);
+    background: var(--bg); color: var(--text); font-family: inherit; font-size: 15px; outline: none; transition: .2s;
+  }
+  input:focus, select:focus { border-color: var(--gold); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  form .btn { justify-content: center; width: 100%; margin-top: 8px; }
+  .form-ok { display: none; text-align: center; padding: 40px 20px; }
+  .form-ok .check { font-size: 56px; margin-bottom: 12px; }
+  .form-ok p { color: var(--muted); }
+
+  /* contacts / footer */
+  .contacts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .contact { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px; }
+  .contact small { color: var(--muted); text-transform: uppercase; letter-spacing: 2px; font-size: 12px; }
+  .contact p { font-size: 18px; margin-top: 8px; }
+  footer { border-top: 1px solid var(--line); padding: 32px 0; color: var(--muted); font-size: 14px; }
+  footer .container { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+
+  /* reveal animation */
+  .reveal { opacity: 0; transform: translateY(30px); transition: .8s cubic-bezier(.2,.7,.2,1); }
+  .reveal.visible { opacity: 1; transform: none; }
+
+  /* mobile */
+  @media (max-width: 900px) {
+    .nav-links { display: none; position: absolute; top: 70px; left: 0; right: 0; flex-direction: column; gap: 0; background: var(--bg-2); border-bottom: 1px solid var(--line); }
+    .nav-links.open { display: flex; }
+    .nav-links a { padding: 16px 4%; border-top: 1px solid var(--line); }
+    .burger { display: block; }
+    .nav .btn { display: none; }
+    .hero { padding: 60px 0 80px; }
+    .hero-grid, .booking { grid-template-columns: 1fr; gap: 48px; }
+    .hero-visual { max-width: 360px; margin: 0 auto; width: 100%; }
+    .hero-card { left: 10px; }
+    .hero-stats { gap: 28px; }
+    .services, .masters, .contacts { grid-template-columns: 1fr; }
+    .steps { grid-template-columns: 1fr 1fr; }
+    section { padding: 70px 0; }
+  }
+  @media (max-width: 520px) {
+    .steps, .form-row { grid-template-columns: 1fr; }
+    form { padding: 24px; }
+    .hero-stats b { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="demo-badge">Демо-проект для портфолио · вымышленный бизнес</div>
+
+<header>
+  <div class="container nav">
+    <a href="#" class="logo">BRIT<span>VA</span></a>
+    <nav class="nav-links" id="nav">
+      <a href="#services">Услуги</a>
+      <a href="#masters">Мастера</a>
+      <a href="#how">Как записаться</a>
+      <a href="#contacts">Контакты</a>
+    </nav>
+    <a href="#booking" class="btn btn-primary btn-sm">Записаться</a>
+    <button class="burger" id="burger" aria-label="Меню">☰</button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="container hero-grid">
+    <div class="reveal">
+      <div class="eyebrow">Барбершоп · с 2019 года</div>
+      <h1>Стрижка, после которой хочется <span class="gold">смотреться в зеркало</span></h1>
+      <p>Мужские стрижки, оформление бороды и королевское бритьё. Записывайтесь онлайн за 30 секунд — прямо в Telegram.</p>
+      <div class="hero-actions">
+        <a href="#booking" class="btn btn-primary">Записаться онлайн →</a>
+        <a href="#services" class="btn btn-ghost">Услуги и цены</a>
+      </div>
+      <div class="hero-stats">
+        <div><b>7 лет</b><span>средний опыт мастеров</span></div>
+        <div><b>45 мин</b><span>на одну стрижку</span></div>
+        <div><b>10–22</b><span>ежедневно</span></div>
+      </div>
+    </div>
+    <div class="hero-visual reveal">
+      <div class="pole"></div>
+      <div class="hero-card">
+        <div class="dot"></div>
+        <div><b>Есть окна сегодня</b><small>ближайшее — в 18:30</small></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="services" class="alt">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="eyebrow">Услуги</div>
+      <h2>Что мы делаем лучше всего</h2>
+      <p>Фиксированные цены без сюрпризов. В каждую услугу входят мытьё головы и укладка.</p>
+    </div>
+    <div class="services">
+      <div class="service reveal">
+        <div class="icon">✂️</div>
+        <h3>Мужская стрижка</h3>
+        <p>Консультация, стрижка машинкой и ножницами, мытьё, укладка.</p>
+        <div class="row"><span class="price">1 800 ₽</span><span class="time">60 мин</span></div>
+      </div>
+      <div class="service reveal">
+        <div class="icon">🧔</div>
+        <h3>Оформление бороды</h3>
+        <p>Моделирование формы, контур опасной бритвой, уход маслом.</p>
+        <div class="row"><span class="price">1 200 ₽</span><span class="time">40 мин</span></div>
+      </div>
+      <div class="service reveal">
+        <div class="icon">👑</div>
+        <h3>Стрижка + борода</h3>
+        <p>Комплекс: полный образ за один визит и выгоднее на 500 ₽.</p>
+        <div class="row"><span class="price">2 500 ₽</span><span class="time">90 мин</span></div>
+      </div>
+      <div class="service reveal">
+        <div class="icon">🪒</div>
+        <h3>Королевское бритьё</h3>
+        <p>Горячие полотенца, опасная бритва, охлаждающий уход.</p>
+        <div class="row"><span class="price">1 500 ₽</span><span class="time">45 мин</span></div>
+      </div>
+      <div class="service reveal">
+        <div class="icon">👦</div>
+        <h3>Детская стрижка</h3>
+        <p>Для ребят до 12 лет. Спокойно, быстро и без слёз.</p>
+        <div class="row"><span class="price">1 200 ₽</span><span class="time">40 мин</span></div>
+      </div>
+      <div class="service reveal">
+        <div class="icon">🎨</div>
+        <h3>Камуфляж седины</h3>
+        <p>Естественное тонирование волос или бороды за 20 минут.</p>
+        <div class="row"><span class="price">1 000 ₽</span><span class="time">30 мин</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="masters">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="eyebrow">Команда</div>
+      <h2>Наши мастера</h2>
+      <p>Выберите мастера при записи — или доверьтесь тому, кто свободен раньше.</p>
+    </div>
+    <div class="masters">
+      <div class="master reveal"><div class="avatar a1">А</div><h3>Артём</h3><p>Топ-барбер · классика и фейды</p></div>
+      <div class="master reveal"><div class="avatar a2">Д</div><h3>Денис</h3><p>Барбер · бороды и бритьё</p></div>
+      <div class="master reveal"><div class="avatar a3">М</div><h3>Марк</h3><p>Барбер · креативные стрижки</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="how" class="alt">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="eyebrow">Онлайн-запись</div>
+      <h2>Запись за 4 шага в Telegram</h2>
+      <p>Без звонков и ожидания ответа администратора.</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal"><h3>Откройте бота</h3><p>Нажмите кнопку «Записаться в Telegram».</p></div>
+      <div class="step reveal"><h3>Выберите услугу</h3><p>Все цены и длительность видно сразу.</p></div>
+      <div class="step reveal"><h3>Мастер и время</h3><p>Бот покажет только свободные окна.</p></div>
+      <div class="step reveal"><h3>Готово</h3><p>Подтверждение и напоминание за 2 часа до визита.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="booking">
+  <div class="container booking">
+    <div class="reveal">
+      <div class="eyebrow">Запись</div>
+      <h2>Запишитесь <span class="gold">прямо сейчас</span></h2>
+      <p>Оставьте заявку — администратор подтвердит время. Или запишитесь сами через Telegram-бота: это быстрее.</p>
+      <!-- Замените YourBarberBot на username вашего бота -->
+      <a href="https://t.me/YourBarberBot" target="_blank" rel="noopener" class="tg-box">
+        <div class="tg-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff"><path d="M9.8 15.3l-.4 5.4c.6 0 .8-.2 1.1-.5l2.6-2.5 5.4 4c1 .5 1.7.3 2-.9l3.6-17c.3-1.5-.6-2.1-1.6-1.7L1.4 9.9C0 10.4 0 11.3 1.2 11.6l5.5 1.7L19.4 5.4c.6-.4 1.2-.2.7.2" transform="scale(.92) translate(1 1)"/></svg>
+        </div>
+        <div><b>Записаться в Telegram →</b><small>Свободные окна в реальном времени</small></div>
+      </a>
+    </div>
+    <div class="reveal">
+      <form id="form">
+        <div>
+          <label for="name">Имя</label>
+          <input id="name" name="name" placeholder="Как к вам обращаться" required>
+        </div>
+        <div>
+          <label for="phone">Телефон</label>
+          <input id="phone" name="phone" type="tel" placeholder="+7 (___) ___-__-__" required>
+        </div>
+        <div>
+          <label for="service">Услуга</label>
+          <select id="service" name="service">
+            <option>Мужская стрижка — 1 800 ₽</option>
+            <option>Оформление бороды — 1 200 ₽</option>
+            <option>Стрижка + борода — 2 500 ₽</option>
+            <option>Королевское бритьё — 1 500 ₽</option>
+            <option>Детская стрижка — 1 200 ₽</option>
+            <option>Камуфляж седины — 1 000 ₽</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div>
+            <label for="master">Мастер</label>
+            <select id="master" name="master">
+              <option>Любой свободный</option>
+              <option>Артём</option>
+              <option>Денис</option>
+              <option>Марк</option>
+            </select>
+          </div>
+          <div>
+            <label for="date">Дата</label>
+            <input id="date" name="date" type="date" required>
+          </div>
+        </div>
+        <button class="btn btn-primary" type="submit">Отправить заявку</button>
+      </form>
+      <div class="form-ok" id="formOk">
+        <div class="check">✅</div>
+        <h3>Заявка отправлена!</h3>
+        <p>Администратор свяжется с вами в течение 15 минут.<br><small>(Демо: заявка никуда не отправляется)</small></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="contacts" class="alt">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="eyebrow">Контакты</div>
+      <h2>Ждём вас</h2>
+    </div>
+    <div class="contacts">
+      <div class="contact reveal"><small>Адрес</small><p>ул. Примерная, 12</p></div>
+      <div class="contact reveal"><small>Телефон</small><p>+7 (000) 000-00-00</p></div>
+      <div class="contact reveal"><small>Режим работы</small><p>Ежедневно 10:00–22:00</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <span>© BRITVA — демо-проект</span>
+    <span>Разработка сайта и Telegram-бота: <a href="#" class="gold">Nikita</a></span>
+  </div>
+</footer>
+
+<script>
+  // mobile menu
+  const burger = document.getElementById('burger');
+  const nav = document.getElementById('nav');
+  burger.addEventListener('click', () => nav.classList.toggle('open'));
+  nav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => nav.classList.remove('open')));
+
+  // reveal on scroll
+  const io = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), (i % 6) * 80);
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // min date = today
+  const date = document.getElementById('date');
+  date.min = new Date().toISOString().split('T')[0];
+
+  // phone mask
+  const phone = document.getElementById('phone');
+  phone.addEventListener('input', () => {
+    let d = phone.value.replace(/\D/g, '').replace(/^[78]/, '').slice(0, 10);
+    let out = '+7';
+    if (d.length) out += ' (' + d.slice(0, 3);
+    if (d.length >= 3) out += ') ' + d.slice(3, 6);
+    if (d.length >= 6) out += '-' + d.slice(6, 8);
+    if (d.length >= 8) out += '-' + d.slice(8, 10);
+    phone.value = out;
+  });
+
+  // demo submit
+  // В реальном проекте здесь fetch() на ваш backend, который шлёт заявку в Telegram.
+  // Токен бота НЕЛЬЗЯ хранить во фронтенде.
+  document.getElementById('form').addEventListener('submit', e => {
+    e.preventDefault();
+    e.target.style.display = 'none';
+    document.getElementById('formOk').style.display = 'block';
+  });
+</script>
+</body>
+</html>
