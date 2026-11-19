@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Кофейня — меню (демо Mini App)</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root {
+    /* значения по умолчанию — перезаписываются темой Telegram */
+    --bg: var(--tg-theme-bg-color, #ffffff);
+    --bg-2: var(--tg-theme-secondary-bg-color, #f3f1ee);
+    --text: var(--tg-theme-text-color, #1d1b19);
+    --hint: var(--tg-theme-hint-color, #8d867e);
+    --accent: var(--tg-theme-button-color, #6f4a2f);
+    --accent-text: var(--tg-theme-button-text-color, #ffffff);
+    --card: var(--tg-theme-section-bg-color, #ffffff);
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg-2); color: var(--text);
+    padding-bottom: 100px; user-select: none;
+  }
+  .demo { background: var(--accent); color: var(--accent-text); font-size: 12px; text-align: center; padding: 5px; opacity: .9; }
+
+  header { padding: 18px 16px 8px; background: var(--bg); }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .logo { width: 48px; height: 48px; border-radius: 14px; background: #6f4a2f; display: grid; place-items: center; }
+  .brand h1 { font-size: 20px; }
+  .brand p { font-size: 13px; color: var(--hint); }
+  .status { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { font-size: 12px; padding: 6px 10px; border-radius: 999px; background: var(--bg-2); color: var(--hint); }
+  .chip.ok { color: #2e9d55; display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #2e9d55; display: inline-block; }
+
+  .search { margin-top: 14px; }
+  .search input {
+    width: 100%; padding: 11px 14px; border-radius: 12px; border: 0; outline: none;
+    background: var(--bg-2); color: var(--text); font-size: 15px;
+  }
+
+  nav.tabs {
+    position: sticky; top: 0; z-index: 10; background: var(--bg);
+    display: flex; gap: 8px; overflow-x: auto; padding: 10px 16px 12px; scrollbar-width: none;
+    border-bottom: 1px solid rgba(128,128,128,.12);
+  }
+  nav.tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex-shrink: 0; padding: 8px 14px; border-radius: 999px; border: 0; font-size: 14px; font-weight: 500;
+    background: var(--bg-2); color: var(--text); cursor: pointer; transition: .2s;
+  }
+  .tab.active { background: var(--accent); color: var(--accent-text); }
+
+  main { padding: 8px 12px; }
+  .cat-title { font-size: 19px; font-weight: 700; margin: 18px 4px 10px; scroll-margin-top: 70px; }
+  .list { background: var(--card); border-radius: var(--radius); padding: 0 12px; }
+  .item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(128,128,128,.12); animation: pop .35s ease both; }
+  .item:last-child { border-bottom: 0; }
+  @keyframes pop { from { opacity: 0; transform: translateY(6px); } }
+  .pic { width: 72px; height: 72px; flex-shrink: 0; border-radius: 14px; display: grid; place-items: center; overflow: hidden; }
+  .pic img, .mini img { width: 100%; height: 100%; object-fit: cover; }
+  .text { flex: 1; min-width: 0; }
+  .item h3 { font-size: 15px; font-weight: 600; line-height: 1.25; }
+  .badge { display: inline-block; vertical-align: 2px; margin-left: 4px; font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 6px; background: var(--accent); color: var(--accent-text); text-transform: uppercase; letter-spacing: .4px; }
+  .item .desc { font-size: 13px; color: var(--hint); margin: 2px 0 6px; }
+  .price { font-weight: 600; font-size: 15px; }
+  .add { border: 0; background: var(--bg-2); color: var(--text); width: 34px; height: 34px; border-radius: 10px; font-size: 20px; cursor: pointer; flex-shrink: 0; }
+  .qty { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .qty button { border: 0; width: 30px; height: 30px; border-radius: 9px; background: var(--accent); color: var(--accent-text); font-size: 18px; cursor: pointer; }
+  .qty span { min-width: 16px; text-align: center; font-weight: 600; }
+  .empty { text-align: center; color: var(--hint); padding: 40px 0; }
+
+  /* sheets */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); opacity: 0; pointer-events: none; transition: .25s; z-index: 40; }
+  .overlay.show { opacity: 1; pointer-events: auto; }
+  .sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; background: var(--bg);
+    border-radius: 20px 20px 0 0; padding: 10px 16px 110px; max-height: 88vh; overflow-y: auto;
+    transform: translateY(100%); transition: .3s cubic-bezier(.2,.8,.2,1);
+  }
+  .sheet.show { transform: none; }
+  .grabber { width: 40px; height: 5px; border-radius: 3px; background: var(--hint); opacity: .35; margin: 0 auto 14px; }
+  .sheet h2 { font-size: 20px; margin-bottom: 14px; }
+  .row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(128,128,128,.12); }
+  .row .mini { width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center; flex-shrink: 0; overflow: hidden; }
+  .row .info { flex: 1; }
+  .row .info b { font-size: 14px; display: block; }
+  .row .info small { color: var(--hint); }
+  .total { display: flex; justify-content: space-between; font-size: 17px; font-weight: 700; margin: 16px 0 6px; }
+  .field { margin-top: 14px; }
+  .field label { display: block; font-size: 13px; color: var(--hint); margin-bottom: 6px; }
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--bg-2); padding: 4px; border-radius: 12px; }
+  .seg button { border: 0; padding: 10px; border-radius: 9px; background: transparent; color: var(--text); font-size: 14px; cursor: pointer; }
+  .seg button.active { background: var(--bg); box-shadow: 0 1px 4px rgba(0,0,0,.12); font-weight: 600; }
+  .times { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+  .times button { flex-shrink: 0; border: 0; padding: 9px 14px; border-radius: 10px; background: var(--bg-2); color: var(--text); cursor: pointer; font-size: 14px; }
+  .times button.active { background: var(--accent); color: var(--accent-text); }
+  textarea { width: 100%; border: 0; border-radius: 12px; background: var(--bg-2); color: var(--text); padding: 12px; font: inherit; font-size: 14px; resize: none; outline: none; }
+
+  .success { text-align: center; padding: 30px 10px; }
+  .success .big { color: #2e9d55; }
+  .success h2 { margin: 10px 0 6px; }
+  .success p { color: var(--hint); font-size: 14px; }
+  .order-num { display: inline-block; margin-top: 16px; padding: 10px 18px; border-radius: 12px; background: var(--bg-2); font-weight: 700; font-size: 22px; letter-spacing: 2px; }
+
+  /* fallback-кнопка вне Telegram */
+  .fallback-btn {
+    position: fixed; left: 12px; right: 12px; bottom: 14px; z-index: 60; border: 0; padding: 16px;
+    border-radius: 14px; background: var(--accent); color: var(--accent-text); font-size: 16px; font-weight: 600;
+    cursor: pointer; display: none; box-shadow: 0 8px 24px rgba(0,0,0,.2);
+  }
+</style>
+</head>
+<body>
+
+<div class="demo">Демо Mini App для портфолио · вымышленная кофейня</div>
+
+<header>
+  <div class="brand">
+    <div class="logo"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V9z"/><path d="M17 11h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 3c0 1.5 1 1.5 1 3M12 3c0 1.5 1 1.5 1 3"/></svg></div>
+    <div>
+      <h1>Кофейня</h1>
+      <p id="greet">Кофе, завтраки и выпечка · заказ без очереди</p>
+    </div>
+  </div>
+  <div class="status">
+    <span class="chip ok"><i class="dot"></i>Открыто до 22:00</span>
+    <span class="chip">Готовим ~10 мин</span>
+    
+  </div>
+  <div class="search"><input id="search" placeholder="Найти в меню" autocomplete="off"></div>
+</header>
+
+<nav class="tabs" id="tabs"></nav>
+<main id="menu"></main>
+
+<div class="overlay" id="overlay"></div>
+<div class="sheet" id="sheet"><div class="grabber"></div><div id="sheetBody"></div></div>
+<button class="fallback-btn" id="fallbackBtn"></button>
+
+<script>
+const tg = window.Telegram?.WebApp;
+const inTelegram = !!(tg && tg.initData);
+
+// ---------- данные (в реальном проекте — из API) ----------
+const CATEGORIES = [
+  { id: 'coffee', title: 'Кофе' },
+  { id: 'tea', title: 'Чай и не кофе' },
+  { id: 'bakery', title: 'Выпечка' },
+  { id: 'breakfast', title: 'Завтраки' },
+  { id: 'desserts', title: 'Десерты' },
+];
+// мягкие подложки и цвет иконки по категориям
+const TINT = {
+  coffee: ['#f1e6dc', '#9a6a43'],
+  tea: ['#e7efe3', '#5f7d55'],
+  bakery: ['#f5ead6', '#a07a3a'],
+  breakfast: ['#f6e4dc', '#a3624a'],
+  desserts: ['#efe4ec', '#8a5b7a'],
+};
+// линейные иконки категорий (stroke = currentColor)
+const ICON_PATHS = {
+  coffee: '<path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V9z"/><path d="M17 11h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 3c0 1.5 1 1.5 1 3M12 3c0 1.5 1 1.5 1 3"/>',
+  tea: '<path d="M6 4h12l-1.6 15.2a2 2 0 0 1-2 1.8H9.6a2 2 0 0 1-2-1.8L6 4z"/><path d="M6.7 10h10.6"/><path d="M14 4l2-2.5"/>',
+  bakery: '<path d="M4 13a8 5.5 0 0 1 16 0v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-5z"/><path d="M9 9.2l1 3.3M13.5 8.8l1 3.3"/>',
+  breakfast: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4"/>',
+  desserts: '<path d="M4 20h16v-7H4z"/><path d="M4 13l8-6 8 6"/><path d="M4 16.5h16"/><path d="M12 7V4.5"/>',
+};
+const icon = (cat, size = 30) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${ICON_PATHS[cat]}</svg>`;
+// фото, если есть (item.photo = 'https://...'), иначе иконка категории
+const thumb = (i, size) => i.photo
+  ? `<img src="${i.photo}" alt="" loading="lazy">`
+  : icon(i.cat, size);
+const tintStyle = cat => `background:${TINT[cat][0]};color:${TINT[cat][1]}`;
+const MENU = [
+  { id: 1, cat: 'coffee', name: 'Капучино', desc: '300 мл, двойной эспрессо', price: 220, hit: true },
+  { id: 2, cat: 'coffee', name: 'Флэт уайт', desc: '250 мл, бархатная текстура', price: 240 },
+  { id: 3, cat: 'coffee', name: 'Раф ванильный', desc: '350 мл, сливки и ваниль', price: 290, hit: true },
+  { id: 4, cat: 'coffee', name: 'Американо', desc: '300 мл', price: 170 },
+  { id: 5, cat: 'coffee', name: 'Айс-латте', desc: '400 мл, со льдом', price: 260 },
+  { id: 6, cat: 'coffee', name: 'Эспрессо', desc: '40 мл', price: 130 },
+  { id: 7, cat: 'tea', name: 'Матча латте', desc: '350 мл, на кокосовом', price: 310 },
+  { id: 8, cat: 'tea', name: 'Какао', desc: '300 мл, с маршмеллоу', price: 230 },
+  { id: 9, cat: 'tea', name: 'Облепиховый чай', desc: '500 мл, с мёдом', price: 250 },
+  { id: 10, cat: 'tea', name: 'Лимонад', desc: '400 мл, маракуйя', price: 240 },
+  { id: 11, cat: 'bakery', name: 'Круассан', desc: 'Классический, сливочный', price: 160, hit: true },
+  { id: 12, cat: 'bakery', name: 'Синнабон', desc: 'С корицей и сырным кремом', price: 210 },
+  { id: 13, cat: 'bakery', name: 'Багет с ветчиной', desc: 'Ветчина, сыр, горчица', price: 280 },
+  { id: 14, cat: 'breakfast', name: 'Сырники', desc: 'Со сметаной и ягодами', price: 340 },
+  { id: 15, cat: 'breakfast', name: 'Овсянка', desc: 'С бананом и орехами', price: 260 },
+  { id: 16, cat: 'breakfast', name: 'Тост с авокадо', desc: 'Яйцо пашот, руккола', price: 390 },
+  { id: 17, cat: 'desserts', name: 'Чизкейк', desc: 'Нью-Йорк', price: 290 },
+  { id: 18, cat: 'desserts', name: 'Брауни', desc: 'С шариком мороженого', price: 250 },
+  { id: 19, cat: 'desserts', name: 'Макарон', desc: '3 шт, ассорти', price: 220 },
+];
+
+const cart = {};          // { itemId: qty }
+let orderType = 'here';   // here | togo
+let pickupTime = 'asap';
+let sheetMode = null;     // null | cart | done
+
+// ---------- helpers ----------
+const $ = s => document.querySelector(s);
+const fmt = n => n.toLocaleString('ru-RU') + ' ₽';
+const haptic = (t = 'light') => tg?.HapticFeedback?.impactOccurred(t);
+const totalQty = () => Object.values(cart).reduce((a, b) => a + b, 0);
+const totalSum = () => Object.entries(cart).reduce((s, [id, q]) => s + MENU.find(i => i.id == id).price * q, 0);
+
+// ---------- render menu ----------
+function renderTabs() {
+  $('#tabs').innerHTML = CATEGORIES.map((c, i) =>
+    `<button class="tab ${i === 0 ? 'active' : ''}" data-cat="${c.id}">${c.title}</button>`).join('');
+  $('#tabs').querySelectorAll('.tab').forEach(t => t.onclick = () => {
+    const el = document.getElementById('cat-' + t.dataset.cat);
+    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + scrollY - $('#tabs').offsetHeight - 8, behavior: 'smooth' });
+    haptic();
+  });
+}
+
+function itemControls(item) {
+  const q = cart[item.id] || 0;
+  return q
+    ? `<div class="qty"><button data-act="dec" data-id="${item.id}">−</button><span>${q}</span><button data-act="inc" data-id="${item.id}">+</button></div>`
+    : `<button class="add" data-act="inc" data-id="${item.id}">+</button>`;
+}
+
+function renderMenu() {
+  const q = $('#search').value.trim().toLowerCase();
+  let html = '';
+  CATEGORIES.forEach(c => {
+    const items = MENU.filter(i => i.cat === c.id && (!q || i.name.toLowerCase().includes(q) || i.desc.toLowerCase().includes(q)));
+    if (!items.length) return;
+    html += `<div class="cat-title" id="cat-${c.id}">${c.title}</div><div class="list">`;
+    html += items.map(i => `
+      <div class="item">
+        <div class="pic" style="${tintStyle(i.cat)}">${thumb(i, 30)}</div>
+        <div class="text">
+          <h3>${i.name}${i.hit ? ' <span class="badge">Хит</span>' : ''}</h3>
+          <div class="desc">${i.desc}</div>
+          <span class="price">${fmt(i.price)}</span>
+        </div>
+        <span id="ctl-${i.id}">${itemControls(i)}</span>
+      </div>`).join('');
+    html += '</div>';
+  });
+  $('#menu').innerHTML = html || '<div class="empty">Ничего не нашли. Попробуйте другой запрос</div>';
+}
+
+function updateItem(id) {
+  const el = document.getElementById('ctl-' + id);
+  if (el) el.innerHTML = itemControls(MENU.find(i => i.id == id));
+}
+
+function change(id, delta) {
+  cart[id] = Math.max(0, (cart[id] || 0) + delta);
+  if (!cart[id]) delete cart[id];
+  haptic(delta > 0 ? 'light' : 'soft');
+  updateItem(id);
+  if (sheetMode === 'cart') { totalQty() ? renderCart() : closeSheet(); }
+  updateMainButton();
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]');
+  if (!b) return;
+  change(+b.dataset.id, b.dataset.act === 'inc' ? 1 : -1);
+});
+
+// подсветка активной вкладки при скролле
+let activeCat = null;
+function syncTab() {
+  const titles = [...document.querySelectorAll('.cat-title')];
+  const offset = $('#tabs').offsetHeight + 20;
+  let cur = titles[0];
+  for (const t of titles) if (t.getBoundingClientRect().top <= offset) cur = t;
+  const id = cur?.id.replace('cat-', '');
+  if (id && id !== activeCat) {
+    activeCat = id;
+    document.querySelectorAll('.tab').forEach(t => {
+      const on = t.dataset.cat === id;
+      t.classList.toggle('active', on);
+      if (on) t.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+    });
+  }
+}
+window.addEventListener('scroll', syncTab, { passive: true });
+function observeCats() { activeCat = null; syncTab(); }
+
+$('#search').addEventListener('input', () => { renderMenu(); observeCats(); });
+
+// ---------- sheet: cart & checkout ----------
+function timeOptions() {
+  const res = [['asap', 'Как можно скорее']];
+  const d = new Date();
+  d.setMinutes(Math.ceil((d.getMinutes() + 20) / 15) * 15, 0, 0);
+  for (let i = 0; i < 6; i++) {
+    res.push([d.toTimeString().slice(0, 5), d.toTimeString().slice(0, 5)]);
+    d.setMinutes(d.getMinutes() + 15);
+  }
+  return res;
+}
+
+function renderCart() {
+  const rows = Object.entries(cart).map(([id, q]) => {
+    const i = MENU.find(m => m.id == id);
+    return `<div class="row">
+      <div class="mini" style="${tintStyle(i.cat)}">${thumb(i, 22)}</div>
+      <div class="info"><b>${i.name}</b><small>${fmt(i.price)} × ${q}</small></div>
+      <div class="qty"><button data-act="dec" data-id="${i.id}">−</button><span>${q}</span><button data-act="inc" data-id="${i.id}">+</button></div>
+    </div>`;
+  }).join('');
+
+  $('#sheetBody').innerHTML = `
+    <h2>Ваш заказ</h2>
+    ${rows}
+    <div class="total"><span>Итого</span><span>${fmt(totalSum())}</span></div>
+    <div class="field"><label>Где будете пить кофе?</label>
+      <div class="seg" id="seg">
+        <button data-type="here" class="${orderType === 'here' ? 'active' : ''}">В зале</button>
+        <button data-type="togo" class="${orderType === 'togo' ? 'active' : ''}">С собой</button>
+      </div>
+    </div>
+    <div class="field"><label>Когда приготовить?</label>
+      <div class="times" id="times">${timeOptions().map(([v, l]) =>
+        `<button data-time="${v}" class="${pickupTime === v ? 'active' : ''}">${l}</button>`).join('')}</div>
+    </div>
+    <div class="field"><label>Комментарий</label>
+      <textarea id="comment" rows="2" placeholder="Например: на овсяном молоке, без сахара"></textarea>
+    </div>`;
+
+  $('#seg').onclick = e => { const b = e.target.closest('button'); if (!b) return; orderType = b.dataset.type; haptic(); renderCartKeepComment(); };
+  $('#times').onclick = e => { const b = e.target.closest('button'); if (!b) return; pickupTime = b.dataset.time; haptic(); renderCartKeepComment(); };
+}
+function renderCartKeepComment() { const c = $('#comment')?.value || ''; renderCart(); $('#comment').value = c; }
+
+function openSheet(mode) {
+  sheetMode = mode;
+  mode === 'cart' ? renderCart() : null;
+  $('#overlay').classList.add('show');
+  $('#sheet').classList.add('show');
+  tg?.BackButton?.show();
+  updateMainButton();
+}
+function closeSheet() {
+  if (sheetMode === 'done') resetOrder();
+  sheetMode = null;
+  $('#overlay').classList.remove('show');
+  $('#sheet').classList.remove('show');
+  tg?.BackButton?.hide();
+  updateMainButton();
+}
+$('#overlay').onclick = closeSheet;
+
+function placeOrder() {
+  const order = {
+    items: Object.entries(cart).map(([id, qty]) => ({ id: +id, qty })),
+    total: totalSum(),
+    type: orderType,
+    time: pickupTime,
+    comment: $('#comment')?.value || '',
+  };
+  // В реальном проекте: fetch('/api/orders', { method: 'POST', headers: {'X-Init-Data': tg.initData}, body: JSON.stringify(order) })
+  // Backend валидирует initData, сохраняет заказ и шлёт уведомление бариста в Telegram.
+  console.log('ORDER', order);
+
+  tg?.MainButton?.showProgress();
+  setTimeout(() => {
+    tg?.MainButton?.hideProgress();
+    tg?.HapticFeedback?.notificationOccurred('success');
+    const num = String(Math.floor(100 + Math.random() * 900));
+    sheetMode = 'done';
+    $('#sheetBody').innerHTML = `
+      <div class="success">
+        <div class="big"><svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg></div>
+        <h2>Заказ принят!</h2>
+        <p>${pickupTime === 'asap' ? 'Начинаем готовить — будет готово через ~10 минут' : 'Приготовим к ' + pickupTime}.<br>
+        ${orderType === 'togo' ? 'Заберите на стойке выдачи.' : 'Принесём за ваш столик.'}</p>
+        <div class="order-num">№ ${num}</div>
+        <p style="margin-top:14px;font-size:12px">Демо: заказ никуда не отправляется</p>
+      </div>`;
+    updateMainButton();
+  }, 900);
+}
+
+function resetOrder() {
+  Object.keys(cart).forEach(k => delete cart[k]);
+  pickupTime = 'asap';
+  renderMenu(); observeCats();
+}
+
+// ---------- MainButton (Telegram) / fallback ----------
+function mainButtonState() {
+  if (sheetMode === 'done') return { text: 'Готово', action: closeSheet, visible: true };
+  if (sheetMode === 'cart') return { text: `Оформить заказ · ${fmt(totalSum())}`, action: placeOrder, visible: true };
+  if (totalQty()) return { text: `Корзина · ${totalQty()} шт · ${fmt(totalSum())}`, action: () => openSheet('cart'), visible: true };
+  return { visible: false };
+}
+
+let currentAction = null;
+function updateMainButton() {
+  const s = mainButtonState();
+  currentAction = s.action;
+  if (inTelegram) {
+    s.visible ? tg.MainButton.setText(s.text).show() : tg.MainButton.hide();
+  } else {
+    const b = $('#fallbackBtn');
+    b.style.display = s.visible ? 'block' : 'none';
+    if (s.visible) b.textContent = s.text;
+  }
+}
+$('#fallbackBtn').onclick = () => currentAction?.();
+
+// ---------- init ----------
+if (inTelegram) {
+  tg.ready();
+  tg.expand();
+  tg.MainButton.onClick(() => currentAction?.());
+  tg.BackButton.onClick(closeSheet);
+  const u = tg.initDataUnsafe?.user;
+  if (u?.first_name) $('#greet').textContent = u.first_name + ', что будете пить?';
+}
+renderTabs();
+renderMenu();
+observeCats();
+updateMainButton();
+</script>
+</body>
+</html>
